@@ -1,0 +1,160 @@
+<html>
+<head>
+  <title>Openschooling Mailing</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <div style="margin:100px;">
+    <nav class="navbar navbar-inverse navbar-static-top">
+  <div class="container">
+    <a class="navbar-brand" href="/">Openschooling Mailing</a>
+    <!-- <ul class="nav navbar-nav">
+      <li class="active">
+        <a href="/">Home</a>
+      </li>
+      <li>
+        <a href="/about">About</a>
+      </li>
+      <li>
+        <a href="/sitemap">Sitemap</a>
+      </li>
+    </ul> -->
+  </div>
+</nav>
+    <div class="jumbotron"  style="padding:40px;">
+      <h1>Bulk Mailing</h1>
+      
+      
+      <!-- <p>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p> -->
+      <form action="/mailThem" method="post">
+        <hr />
+        <label for="Mail Id">Enter Mail Id: </label>
+        <p><input id="mailId" type="text" name="name_field" value="notificationopenschooling@gmail.com"></p>
+        <hr />
+        <label for="Password">Enter Mail Password: </label>
+        <input id="Password" type="password" name="password">
+        <hr />
+      
+        <p>
+          <label>Choose the xls/xlsx file containing recipient e-mail Id:</label><input type="file" id="fileUpload" /></p>
+        <p><div id="dvExcel"></div></p>
+        <p><textarea id="toMail" name="toMail"></textarea></p>
+        <hr/>
+        <label>Subject:</label>
+        <p><input type="text" name="subject"></p>
+        <label>Body:</label>
+        <p><textarea type="textarea" name="body"></textarea></p>
+        <!-- < value="OK"> -->
+        <p><input type="submit"class="btn btn-primary btn-lg" href="#" role="button"></p>
+    </form>
+  </div>
+  </div>
+</body>
+</html>
+<!-- <script src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"></script> -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.13.5/xlsx.full.min.js"></script> 
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.13.5/jszip.js"></script>
+<script type="text/javascript">
+  var fileUpload = document.getElementById('fileUpload')
+  fileUpload.addEventListener('change', function() {
+        //Validate whether File is valid Excel file.
+     var regex = /^([a-zA-Z0-9\s(a-zA-Z0-9)_\\.\-:])+(.xls|.xlsx)$/;
+        if (regex.test(fileUpload.value.toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
+ 
+                //For Browsers other than IE.
+                if (reader.readAsBinaryString) {
+                    reader.onload = function (e) {
+                        ProcessExcel(e.target.result);
+                    };
+                    reader.readAsBinaryString(fileUpload.files[0]);
+                } else {
+                    //For IE Browser.
+                    reader.onload = function (e) {
+                        var data = "";
+                        var bytes = new Uint8Array(e.target.result);
+                        for (var i = 0; i < bytes.byteLength; i++) {
+                            data += String.fromCharCode(bytes[i]);
+                        }
+                        ProcessExcel(data);
+                    };
+                    reader.readAsArrayBuffer(fileUpload.files[0]);
+                }
+            } else {
+                alert("This browser does not support HTML5.");
+            }
+        } else {
+            alert("Please upload a valid Excel file.");
+        }
+    function ProcessExcel(data) {
+        //Read the Excel File data.
+        var workbook = XLSX.read(data, {
+            type: 'binary'
+        });
+ 
+        //Fetch the name of First Sheet.
+        var firstSheet = workbook.SheetNames[0];
+ 
+        //Read all rows from First Sheet into an JSON array.
+        var excelRows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet]);
+        console.log("value",excelRows)
+        var emailRow=''
+         Object.keys(excelRows).forEach((key)=>{
+emailRow+=excelRows[key].email+','
+         })    
+        console.log("email row"+emailRow)
+        var toMail=document.getElementById("toMail");
+        toMail.innerText="";
+        toMail.append((emailRow).slice(0,-1))
+        //Create a HTML Table element.
+        var table = document.createElement("table");
+        table.border = "0";
+ 
+        //Add the header row.
+        var row = table.insertRow(-1);
+ 
+        //Add the header cells.
+        var headerCell = document.createElement("TH");
+        headerCell.innerHTML = "email";
+        row.appendChild(headerCell); 
+        //Add the data rows from Excel file.
+        for (var i = 0; i < excelRows.length; i++) {
+            //Add the data row.
+            var row = table.insertRow(-1);
+ 
+            //Add the data cells.
+            var cell = row.insertCell(-1);
+            cell.innerHTML = excelRows[i].email;    
+            
+        console.log(cell)   
+        }
+        var dvExcel = document.getElementById("dvExcel");
+        dvExcel.innerHTML = "";
+        dvExcel.appendChild(table);
+        
+        
+    }
+//     function convertToCSV(objArray) {
+//     var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+//     var str = '';
+
+//     for (var i = 0; i < array.length; i++) {
+//         var line = '';
+//         for (var index in array[i]) {
+//             if (line != '') line += ','
+
+//             line += array[i][index];
+//         }
+
+//         str += line + ',';
+//     }
+// console.log("csv",line)
+//     return str;
+// }
+    
+  })
+</script> 
