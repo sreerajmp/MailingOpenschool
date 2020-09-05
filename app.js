@@ -6,47 +6,50 @@ const bodyParser = require("body-parser")
 app.use(bodyParser.urlencoded({ 
   extended:false
 }));
+// View engine setup 
+app.set('view engine', 'ejs'); 
+
 app.get('/', function (req, res) { 
   res.sendFile(path.join(__dirname+'/mailing.html'));
 });
-app.post("/mailThem",async function (req, res)
+app.post("/mailThem",function (req, res)
  {
   responses = {
      request:req.body
   };  
   console.log(req.body);
-  let val= await sendMailTo(req.body.name_field,req.body.password,req.body.toMail,req.body.subject,req.body.body)
-  res.end(`<h1>${val}</h1>`)  
+  sendMailTo(req,res)
+  // res.end(`<h1>${sendMailTo(req,res)}</h1>`)  
 })
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 });
- function sendMailTo(senderMail,senderPassword,toMail,mailSubject,mailText){
+ var sendMailTo=function(req,res){
   var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: senderMail,
-      pass: senderPassword
+      user: req.body.name_field,
+      pass: req.body.password
     }
   });
   var mailOptions = {
-    from: senderMail,
-    to: toMail,
-    subject: mailSubject,
-    text: mailText,
-   html: `<h1>Welcome</h1><p>${mailText}</p>`
+    from: req.body.name_field,
+    bcc: req.body.toMail,
+    subject: req.body.subject,
+    // text: mailText,
+   html: `<h1>Welcome</h1><p>${req.body.body}</p>`
   };
   
-  var x=transporter.sendMail(mailOptions,(error, info) => {
+  transporter.sendMail(mailOptions,async function(error, info){
       if (error) {
         console.log(error);
-        return error;
+        // res.sendFile(path.join(__dirname+'/mailing.html'),{info:error});
+        res.render('result',{info:error});
       } else {
-        console.log('Email sent: ' + info.response);
-        return info;
+        console.log('Email sent: ',info);
+        // res.sendFile(path.join(__dirname+'/mailing.html'),{info:info});
+        res.render('result',{info:info});
       }
     });
-  console.log("x:",x)
-  return x
 }
 
